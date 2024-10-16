@@ -1,0 +1,6 @@
+@SkillbridgeAPI_HostAddress = http://localhost:5178
+
+GET {{SkillbridgeAPI_HostAddress}}/index/
+Accept: application/json
+
+###
