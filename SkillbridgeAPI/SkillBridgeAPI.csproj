@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Taku.Core\Taku.Core.csproj" />
+    <ProjectReference Include="..\Taku.Core\Taku.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
