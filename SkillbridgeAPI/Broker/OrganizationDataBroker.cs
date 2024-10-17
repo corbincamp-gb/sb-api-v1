@@ -1,7 +1,9 @@
-﻿using SkillBridgeAPI.Commands;
+﻿using Microsoft.Extensions.Caching.Memory;
+using SkillBridgeAPI.Commands;
 using SkillBridgeAPI.Mappings;
 using SkillBridgeAPI.Queries;
 using System.Drawing;
+using SkillBridgeAPI.Caching;
 using Taku.Core;
 using Taku.Core.Models;
 
@@ -9,10 +11,12 @@ namespace SkillBridgeAPI.Broker
 {
     public interface IOrganizationDataBroker : IBroker
     {
-        Task<ProgramOrganizationListModel> Render(string filter,int page = 0, int size = 10);
+        Task<ProgramOrganizationListModel> Render(string searchValue, int? draw = null, int? page = null, int? size = null);
     }
 
     public class OrganizationDataBroker(
+        ICacheQuery _cacheQuery,
+        ICacheItemCommand _cacheItemCommand,
         IOrganizationCollectionQuery _organizationCollectionQuery,
         IProgramCollectionQuery _programCollectionQuery,
         IDetermineProgramDurationCommand _determineProgramDurationCommand,
@@ -23,20 +27,26 @@ namespace SkillBridgeAPI.Broker
     : IOrganizationDataBroker
     {
        
-        public async Task<ProgramOrganizationListModel> Render(string filter, int page = 0, int size = 10)
+        public async Task<ProgramOrganizationListModel> Render(string searchValue, int? draw, int? page = 0, int? size = null)
         {
-            
+            if (_cacheQuery.Get<ProgramOrganizationListModel>(CacheKeys.ProgramOrgs, out var cacheResult))
+            {
+
+                return _programOrganizationListMapping.Map(draw.Value, size.Value, cacheResult);
+            }
+
             var ret = _programOrganizationListMapping.Map();
             var data = ret.Data.ToList();
 
-            var orgs = _organizationCollectionQuery.Get(filter, true, out var rowCount, page: page, size: size).ToHashSet();
-            ret.RowCount = rowCount;
-            ret.PageCount = ret.RowCount / size;
-
-
+            var orgs = _organizationCollectionQuery.Get(searchValue, true, out var rowCount, page: page, size: size).ToHashSet();
+            ret.RecordsTotal = rowCount;
+            ret.RecordsFiltered = rowCount;
+            ret.Draw = page.HasValue 
+                ? (page.Value == 0 ? 1 : page.Value) 
+                : 0;
+            
             var progs = _programCollectionQuery.Get(orgs.Select(o => o.Id)).Result.ToHashSet();
             
-
             foreach (var org in orgs)
             {
                 var subProgs = progs.Where(x => x.OrganizationId == org.Id && x.IsActive).ToArray();
@@ -109,6 +119,8 @@ namespace SkillBridgeAPI.Broker
             }
 
             ret.Data = data;
+
+            _cacheItemCommand.Execute(CacheKeys.ProgramOrgs, ret, true, 240, 30, 2048);
             
             return ret;
         }

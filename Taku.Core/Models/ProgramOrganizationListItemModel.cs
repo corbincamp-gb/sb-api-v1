@@ -1,33 +1,39 @@
-﻿namespace SkillBridgeAPI.Models;
+﻿using Microsoft.AspNetCore.Html;
+using System.Text.Json.Serialization;
 
-public interface IProgramOrganizationListItem
+namespace Taku.Core.Models;
+public class ProgramOrganizationListItemModel 
 {
-    string Program { get; set; }
-    string Url { get; set; }
-    string OpportunityType { get; set; }
-    string DeliveryMethod { get; set; }
-    string ProgramDuration { get; set; }
-    IEnumerable<string> States { get; set; }
-    bool NationWide { get; set; }
-    bool Online { get; set; }
-    bool Cohorts { get; set; }
-    string JobFamily { get; set; }
-    bool LocationDetailsAvailable { get; set; }
-    DateTime MouExtDate { get; set; }
-}
-
-public class ProgramOrganizationListItemModel : IProgramOrganizationListItem
-{
+    [JsonPropertyName("progNm")]
     public string Program { get; set; }
+
     public string Url { get; set; }
+    [JsonPropertyName("oppType")]
     public string OpportunityType { get; set; }
+    [JsonPropertyName("devMthd")]
+
     public string DeliveryMethod { get; set; }
+    [JsonPropertyName("duration")]
+
     public string ProgramDuration { get; set; }
+    
     public IEnumerable<string> States { get; set; }
+
+    [JsonPropertyName("nw")]
     public bool NationWide { get; set; }
+    [JsonPropertyName("ol")]
+
     public bool Online { get; set; }
+    [JsonPropertyName("ch")]
+
     public bool Cohorts { get; set; }
+    [JsonPropertyName("jf")]
+
     public string JobFamily { get; set; }
+    [JsonPropertyName("lda")]
+
     public bool LocationDetailsAvailable { get; set; }
+    [JsonPropertyName("med")]
+
     public DateTime MouExtDate { get; set; }
 }
